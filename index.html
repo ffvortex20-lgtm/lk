@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Likes - FF</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #1e1e24;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #f39c12;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background-color: #2a2a35;
+            color: #fff;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: #f39c12;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            background-color: #f39c12;
+            color: #fff;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #e67e22;
+        }
+
+        button:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: bold;
+            min-height: 20px;
+        }
+
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
+        .loading { color: #f1c40f; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Enviar Likes</h2>
+        <form id="likeForm">
+            <div class="form-group">
+                <label for="playerId">ID da Conta:</label>
+                <input type="text" id="playerId" placeholder="Ex: 15804192385" required>
+            </div>
+
+            <div class="form-group">
+                <label for="region">Região:</label>
+                <select id="region">
+                    <option value="BR">Brasil (BR)</option>
+                    <option value="US">Estados Unidos (US)</option>
+                    <option value="EU">Europa (EU)</option>
+                    <option value="SG">Singapura (SG)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="bots">Quantidade de Likes:</label>
+                <input type="number" id="bots" placeholder="Ex: 200" min="1" max="1000" required>
+            </div>
+
+            <button type="submit" id="submitBtn">Enviar Agora</button>
+        </form>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        document.getElementById('likeForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Evita que a página recarregue
+
+            const id = document.getElementById('playerId').value;
+            const region = document.getElementById('region').value;
+            const bots = parseInt(document.getElementById('bots').value);
+            
+            const statusDiv = document.getElementById('status');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // ATENÇÃO: Esta chave ficará exposta para quem inspecionar a página.
+            const API_KEY = "M4SFFXVW8FFH2UZPEHSTS6N0QTUNGLWH126WEA4YD9O6I";
+            const API_URL = "https://freefirelikes.com/api/v1/likes";
+
+            // Atualiza a interface
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Processando...";
+            statusDiv.className = "loading";
+            statusDiv.innerText = "Conectando com a API...";
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        region: region,
+                        bots: bots
+                    })
+                });
+
+                const data = await response.json().catch(() => null); // Tenta ler a resposta em JSON
+
+                if (response.ok) {
+                    statusDiv.className = "success";
+                    statusDiv.innerText = "Sucesso! Os likes foram enviados.";
+                } else {
+                    statusDiv.className = "error";
+                    statusDiv.innerText = `Erro: ${data ? JSON.stringify(data) : 'Falha na requisição. Código: ' + response.status}`;
+                }
+
+            } catch (error) {
+                console.error("Erro na requisição:", error);
+                statusDiv.className = "error";
+                statusDiv.innerText = "Erro de conexão. Verifique o console (F12) para detalhes ou bloqueio de CORS.";
+            } finally {
+                // Restaura o botão
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Enviar Agora";
+            }
+        });
+    </script>
+</body>
+</html>
